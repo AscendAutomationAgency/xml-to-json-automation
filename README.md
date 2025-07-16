@@ -1,4 +1,4 @@
-# Capture Customer Feedback
+# Convert AWS S3 XML file to JSON
 
 An n8n workflow to download an XML file from an AWS S3 buckets, collect specific elements from it, convert it to JSON and upload back to AWS S3.
 
