@@ -1,0 +1,292 @@
+{
+  "name": "XML to JSON id:1945538841191108591",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9d097806-5d7c-4a6b-8b45-f28b1bd533f8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "bucketName": "={{ $json.s3_bucket_id }}",
+        "fileKey": "={{ $json.xml_filename }}"
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "cdc916dc-3e6f-434c-adf2-7f6a08c6323e",
+      "name": "Download XML File",
+      "credentials": {
+        "aws": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "539acdc2-ad1f-43a0-ad80-5a7eca524a60",
+      "name": "Extract XML"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        896,
+        0
+      ],
+      "id": "b37fe6be-66c4-42b0-895a-6f2984c6cc3c",
+      "name": "XML to JSON"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "company.employee",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        16,
+        224
+      ],
+      "id": "0d94a127-045b-4e24-8ed5-47c168c42975",
+      "name": "Split Out Employee Names"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"employee_names\": \"{{ $json.name }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        224
+      ],
+      "id": "2c793ed3-f2a9-4f54-b08a-fda9eb40b1da",
+      "name": "Create New JSON"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "employee_names"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        464,
+        224
+      ],
+      "id": "4def0acb-60a3-409b-bdb2-5a225fc3b7cd",
+      "name": "Combine Elements In List"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"s3_bucket_id\": \"\",\n  \"xml_filename\": \"test.xml\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "7cf27c8f-6890-4cd8-b95b-92000fe25b71",
+      "name": "ENV VARS"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        224
+      ],
+      "id": "273b9f47-90bd-459a-b0a0-d570c4055f9a",
+      "name": "Convert JSON to Binary"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "={{ $('ENV VARS').item.json.s3_bucket_id }}",
+        "fileName": "={{ $('ENV VARS').item.json.xml_filename.replace(/\\.xml$/, '.json') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        896,
+        224
+      ],
+      "id": "3e63fb58-9f6c-493b-b61d-f44997314294",
+      "name": "Upload JSON File",
+      "credentials": {
+        "aws": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Set Variables Here\n---\n1. Bucket ID\n2. Input Filename",
+        "height": 320,
+        "width": 166,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        192,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "aa896658-9ad2-4b0a-bff0-cd31589516dd",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "ENV VARS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download XML File": {
+      "main": [
+        [
+          {
+            "node": "Extract XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract XML": {
+      "main": [
+        [
+          {
+            "node": "XML to JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML to JSON": {
+      "main": [
+        [
+          {
+            "node": "Split Out Employee Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Employee Names": {
+      "main": [
+        [
+          {
+            "node": "Create New JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New JSON": {
+      "main": [
+        [
+          {
+            "node": "Combine Elements In List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Elements In List": {
+      "main": [
+        [
+          {
+            "node": "Convert JSON to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ENV VARS": {
+      "main": [
+        [
+          {
+            "node": "Download XML File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert JSON to Binary": {
+      "main": [
+        [
+          {
+            "node": "Upload JSON File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e1e7a523-7252-4569-8626-2db41f114fcb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c1d6009e070a9ca3ab59a6b418afc87701d07f6e1fd8e5589831995f86febc00"
+  },
+  "id": "uhih3wuCouSKCXXS",
+  "tags": []
+}
